@@ -188,7 +188,7 @@ class Notes_Overlay(pygame.sprite.Sprite):
         self.smfont = pygame.font.SysFont(None, 49)
         self.noteText = self.font.render("G   A   B   C   D   E   F   G", True, BLACK)
         self.noteRect = self.noteText.get_rect(center= (1100, 42))
-        self.arrowText = self.smfont.render("left        right         up  down", True, BLACK)
+        self.arrowText = self.smfont.render("left                right                  up    down", True, BLACK)
         self.arrowRect = self.arrowText.get_rect(center= (1100, 88))
         self.indicatorcircle = pygame.Surface((69, 69))
         self.indicatorcircle.fill((255, 255, 0))
