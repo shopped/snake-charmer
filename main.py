@@ -3,7 +3,7 @@ import sys
 import random
 from pygame.locals import *
 from sprites import *
-
+from Realtime_PyAudio_FFT.stream_analyzer import Stream_Analyzer
 import level1, level2, level3, level4
 
 pygame.init()
@@ -14,6 +14,10 @@ WIDTH = 1920
 FPS = 30
 
 FramesPecSec = pygame.time.Clock()
+ear = Stream_Analyzer(rate   = None, # Audio samplerate, None uses the default source settings
+                    FFT_window_size_ms  = 60,    # Window size used for the FFT transform
+                    updates_per_second  = 1000,  # How often to read the audio stream for new data
+                    smoothing_length_ms = 50)
 
 displaysurface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake Charmer")
@@ -46,26 +50,37 @@ class Player(pygame.sprite.Sprite):
             self.surf = movingSprite2F if self.flipped else movingSprite2
             self.moveToggle = True
 
-    def move(self):
+    def move(self, note, volume):
         on_floor = pygame.sprite.spritecollide(PLAYER, FLOORS, False)
         on_tree = pygame.sprite.spritecollide(PLAYER, TREES, False)
         on_sign = pygame.sprite.spritecollide(PLAYER, signs, False)
         on_goal = pygame.sprite.spritecollide(PLAYER, [GOAL], False)
         pressed_keys = pygame.key.get_pressed() # for testing only
-        if pressed_keys[K_LEFT] and on_floor:
+        DIR = 'None'
+        if (volume > 500000):
+            if (note == 'C' or note == 'B'):
+                DIR = 'LEFT'
+            elif (note == 'A' or note == 'A#' or note == 'G#'):
+                DIR = 'RIGHT'
+            elif (note == 'F' or note == 'F#'):
+                DIR = 'UP'
+            elif (note == 'E' or note == 'C#'):
+                DIR = 'DOWN'
+        # if pressed_keys[K_LEFT] and on_floor:
+        if DIR == 'LEFT' and on_floor:
             if on_floor:
                 self.vel = (-8,0)
                 self.animateMove()
                 self.flipped = True
-        elif pressed_keys[K_RIGHT] and on_floor:
+        elif DIR == 'RIGHT' and on_floor:
                 self.vel = (8,0)
                 self.animateMove()
                 self.flipped = False
-        elif pressed_keys[K_UP] and (on_tree or on_floor):
+        elif DIR == 'UP' and (on_tree or on_floor):
                 self.vel = (0,-8)
                 self.surf = restingSpriteF if self.flipped else restingSprite
                 self.flipped = not self.flipped
-        elif pressed_keys[K_DOWN] and on_tree:
+        elif DIR == 'DOWN' and on_tree:
             if on_tree:
                 self.vel = (0,8)
                 self.surf = restingSpriteF if self.flipped else restingSprite
@@ -100,6 +115,10 @@ class Player(pygame.sprite.Sprite):
 
 PLAYER = Player()
 SIGN_OVERLAY = Sign_Overlay()
+TIME_OVERLAY = Time_Overlay()
+LEVEL_OVERLAY = Level_Overlay()
+VOLUME_OVERLAY = Volume_Overlay()
+NOTES_OVERLAY = Notes_Overlay()
 
 FADER = Fader()
 
@@ -109,11 +128,12 @@ TREES = level1.TREES
 signs = level1.signs
 GOAL = level1.GOAL
 
+all_sprites.add(LEVEL_OVERLAY)
+
 level = 1
 def start_next_level():
     global level
     level += 1
-    print("Next level! {}".format(level))
     current_level = level1
     if level == 2:
         current_level = level2
@@ -122,13 +142,19 @@ def start_next_level():
     elif level == 4:
         current_level = level4
     else:
-        print("Reminder to save the best time")
+        level = 1
+        TIME_OVERLAY.reset()
+        print("Reminder to display the best time")
+    LEVEL_OVERLAY.update(level)
+    
     global all_sprites
     global FLOORS
     global TREES
     global signs
     global GOAL
     all_sprites = current_level.create_sprite_group(PLAYER)
+    all_sprites.add(LEVEL_OVERLAY)
+    
     FLOORS = current_level.FLOORS
     TREES = current_level.TREES
     signs = current_level.signs
@@ -141,14 +167,19 @@ while True:
             sys.exit()
 
     displaysurface.fill((100,100,200))
+    audio_data = ear.get_audio_features()
 
-    PLAYER.move()
+    PLAYER.move(audio_data['note'], audio_data['vol'])
     for entity in all_sprites:
         displaysurface.blit(entity.surf, entity.rect)
 
     if SIGN_OVERLAY.visible:
         for entity in SIGN_OVERLAY.entities:
             displaysurface.blit(entity["surf"], entity["rect"])
+
+    TIME_OVERLAY.display(displaysurface)
+    NOTES_OVERLAY.display(audio_data['note'], audio_data['vol'], displaysurface)
+    VOLUME_OVERLAY.display(audio_data['vol'], displaysurface)
 
     if FADER.FADEOUT or FADER.FADEIN:
         FADER.display(displaysurface)
