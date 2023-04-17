@@ -56,34 +56,34 @@ class Player(pygame.sprite.Sprite):
         on_sign = pygame.sprite.spritecollide(PLAYER, signs, False)
         on_goal = pygame.sprite.spritecollide(PLAYER, [GOAL], False)
         pressed_keys = pygame.key.get_pressed() # for testing only
-        # DIR = 'None'
-        # if (volume > 500000):
-            # if (note == 'C' or note == 'B'):
-                # DIR = 'LEFT'
-            # elif (note == 'A' or note == 'A#' or note == 'G#'):
-                # DIR = 'RIGHT'
-            # elif (note == 'F' or note == 'F#'):
-                # DIR = 'UP'
-            # elif (note == 'E' or note == 'C#'):
-                # DIR = 'DOWN'
-        if pressed_keys[K_LEFT] and on_floor:
-        # if DIR == 'LEFT' and on_floor:
+        DIR = 'None'
+        if (volume > 500000):
+            if (note == 'C' or note == 'B'):
+                DIR = 'LEFT'
+            elif (note == 'A' or note == 'A#' or note == 'G#'):
+                DIR = 'RIGHT'
+            elif (note == 'F' or note == 'F#'):
+                DIR = 'UP'
+            elif (note == 'E' or note == 'C#'):
+                DIR = 'DOWN'
+        # if pressed_keys[K_LEFT] and on_floor:
+        if DIR == 'LEFT' and on_floor:
             if on_floor:
                 self.vel = (-8,0)
                 self.animateMove()
                 self.flipped = True
-        if pressed_keys[K_RIGHT] and on_floor:
-        # elif DIR == 'RIGHT' and on_floor:
+        # if pressed_keys[K_RIGHT] and on_floor:
+        elif DIR == 'RIGHT' and on_floor:
                 self.vel = (8,0)
                 self.animateMove()
                 self.flipped = False
-        if pressed_keys[K_UP] and on_floor:
-        # elif DIR == 'UP' and (on_tree or on_floor):
+        # if pressed_keys[K_UP] and on_floor:
+        elif DIR == 'UP' and (on_tree or on_floor):
                 self.vel = (0,-8)
                 self.surf = restingSpriteF if self.flipped else restingSprite
                 self.flipped = not self.flipped
-        if pressed_keys[K_DOWN] and on_floor:
-        # elif DIR == 'DOWN' and on_tree:
+        # if pressed_keys[K_DOWN] and on_floor:
+        elif DIR == 'DOWN' and on_tree:
             if on_tree:
                 self.vel = (0,8)
                 self.surf = restingSpriteF if self.flipped else restingSprite

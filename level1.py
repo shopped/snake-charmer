@@ -5,10 +5,10 @@ HEIGHT = 1080
 WIDTH = 1920
 
 sign_texts = {
-    0: 'You can play an A note to move left. Try playing a C note to move right.',
-    1: 'Welcome to snake charmer! Play a C note into your microphone to proceed forward',
+    0: 'You can play an C note to move left. Try playing a A note to move right.',
+    1: 'Welcome to snake charmer! Play the A note into your microphone to proceed forward',
     2: 'Snakes cannot see well, so you need to be touching a sign to read it',
-    3: 'Did you know you can play an A note to move left?',
+    3: 'Did you know you can play a C note to move left?',
     4: 'Play E/F notes to climb up and down a tree',
     5: 'Good job! Keep going!',
     6: 'Your job as a python is to search for the holy grail. Try to get all 4 as fast as possible!',

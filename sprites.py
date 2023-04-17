@@ -7,6 +7,7 @@ signSprite = pygame.image.load("sprites/Sign.png")
 goalSprite = pygame.image.load("sprites/Goal.png")
 
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 BROWN = (90, 54, 8)
 
 class Sign_Sprite(pygame.sprite.Sprite):
@@ -178,23 +179,53 @@ noteDict = {'A': 500,
 'G#': 1050,
 }
 
+surf = 'surf'
+rect = 'rect'
+
 class Notes_Overlay(pygame.sprite.Sprite):
     # Circle the right one in a different color
     # Also add direction keys to remind the player
     def __init__(self):
         super().__init__()
         self.entities = []
+        self.notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
         self.font = pygame.font.SysFont(None, 99)
         self.smfont = pygame.font.SysFont(None, 49)
-        self.noteText = self.font.render("G   A   B   C   D   E   F   G", True, BLACK)
-        self.noteRect = self.noteText.get_rect(center= (1100, 42))
-        self.arrowText = self.smfont.render("left                right                  up    down", True, BLACK)
-        self.arrowRect = self.arrowText.get_rect(center= (1100, 88))
-        self.indicatorcircle = pygame.Surface((69, 69))
-        self.indicatorcircle.fill((255, 255, 0))
+        self.new_note_x = 550
+        self.note_positions = {}
+
+        for note in self.notes:
+            new_note = self.font.render(note, True, WHITE if len(note) == 1 else BLACK)
+            self.entities.append({surf: new_note, rect: new_note.get_rect(center= (self.new_note_x, 42))})
+            self.note_positions[note] = self.new_note_x
+            self.new_note_x += 80
+
+        left_text = self.smfont.render("left", True, WHITE)
+        self.entities.append({
+            surf: left_text,
+            rect: left_text.get_rect(center = (self.note_positions['C'], 88))
+        })
+        right_text = self.smfont.render("right", True, WHITE)
+        self.entities.append({
+            surf: right_text,
+            rect: right_text.get_rect(center = (self.note_positions['A'], 88))
+        })
+        down_text = self.smfont.render("down", True, WHITE)
+        self.entities.append({
+            surf: down_text,
+            rect: down_text.get_rect(center = (self.note_positions['E'], 88))
+        })
+        up_text = self.smfont.render("up", True, WHITE)
+        self.entities.append({
+            surf: up_text,
+            rect: up_text.get_rect(center = (self.note_positions['F'], 88))
+        })
+
+        self.indicator = pygame.Surface((69, 69))
+        self.indicator.fill((255, 255, 0))
     
     def display(self, note, volume, displaysurface):
         if (note != 'x') and (volume > 500000):
-            displaysurface.blit(self.indicatorcircle, self.indicatorcircle.get_rect(center = (noteDict[note] , 42)))
-        displaysurface.blit(self.noteText, self.noteRect)
-        displaysurface.blit(self.arrowText, self.arrowRect)
+            displaysurface.blit(self.indicator, self.indicator.get_rect(center = (self.note_positions[note] , 42)))
+        for entity in self.entities:
+            displaysurface.blit(entity[surf], entity[rect])
