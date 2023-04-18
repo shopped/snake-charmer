@@ -6,9 +6,9 @@ WIDTH = 1920
 
 sign_texts = {
     0: 'Some trees here are tricky and wont let you climb',
-    1: '*hint* 1248->1248->1248->1248->1248', #0001->1000->0101->1010->0111
+    1: '*hint* 1248->1248->1248->1248', #0001->1000->0101->1010
     2: 'The secret code is binary',
-    3: 'Did you know, there are over 32,000 combinations for this level?',
+    3: 'Did you know, there are over 4,000 combinations for this level?',
     5: 'Also I randomly generate it, so you cannot cheat',
     6: 'You can always look at the source code if you are stuck, but at this point you probably do not need it',
     7: 'I hope you wrote down the hint at this point! Or you remember what it was',

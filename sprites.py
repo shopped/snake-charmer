@@ -1,14 +1,48 @@
 import pygame
+vec = pygame.math.Vector2
 
 HEIGHT = 1080
 WIDTH = 1920
 
 signSprite = pygame.image.load("sprites/Sign.png")
 goalSprite = pygame.image.load("sprites/Goal.png")
+knightSprite = pygame.image.load("sprites/Knight.png")
+boulderSprite = pygame.image.load("sprites/Boulder.png")
+spawnerSprite = pygame.image.load("sprites/Spawner.png")
+oldTreeSprite = pygame.image.load("sprites/OldTree.png")
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BROWN = (90, 54, 8)
+
+class Boulder_Spawner_Sprite(pygame.sprite.Sprite):
+    def __init__(self, position):
+        super().__init__()
+        self.surf = spawnerSprite
+        self.rect = self.surf.get_rect(midbottom= position)
+        self.child = Boulder_Sprite(position)
+        self.position = position
+    def update(self, ds):
+        self.child.pos.x -= 16
+        if self.child.pos.x < -128:
+            self.child.pos = vec(self.position)
+        elif self.child.pos.x < 256:
+            self.child.bounce = False
+        self.child.bounce = not self.child.bounce
+        self.child.pos.y += 2 if self.child.bounce else -2
+        self.child.rect.midbottom = self.child.pos
+        ds.blit(self.child.surf, self.child.rect)
+
+
+class Boulder_Sprite(pygame.sprite.Sprite):
+    def __init__(self, position):
+        super().__init__()
+        self.surf = boulderSprite
+        self.bounce = False
+        self.rect = self.surf.get_rect(center= position)
+        self.pos = vec(position)
+
+    
 
 class Sign_Sprite(pygame.sprite.Sprite):
     def __init__(self, text, position):
@@ -22,6 +56,36 @@ class Goal_Sprite(pygame.sprite.Sprite):
         super().__init__()
         self.surf = goalSprite
         self.rect = self.surf.get_rect(center= position)
+
+class Knight_Sprite(pygame.sprite.Sprite):
+    def __init__(self, position):
+        super().__init__()
+        self.surf = knightSprite
+        self.rect = self.surf.get_rect(center= position)
+        self.dead = False
+        self.bounce = False
+        self.pos = vec(position)
+    def update(self, snakex, FLOORS):
+        if self.dead:
+            return
+        if self.pos.y > 1300:
+            self.dead = True
+            return
+        on_floor = pygame.sprite.spritecollide(self, FLOORS, False)
+        if on_floor:
+            self.bounce = not self.bounce
+            self.pos.y += 1 if self.bounce else -1
+        else:
+            self.pos.y += 8
+            self.rect.midbottom = self.pos
+            return
+        if snakex < self.pos.x:
+            self.pos.x -= 6
+        elif snakex > self.pos.x:
+            self.pos.x += 6
+        self.rect.midbottom = self.pos
+
+
 
 class Sign_Overlay(pygame.sprite.Sprite):
     def __init__(self):

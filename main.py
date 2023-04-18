@@ -4,7 +4,7 @@ import random
 from pygame.locals import *
 from sprites import *
 from Realtime_PyAudio_FFT.stream_analyzer import Stream_Analyzer
-import level1, level2, level3, level4
+import level1, level3, level2, level4
 
 pygame.init()
 vec = pygame.math.Vector2
@@ -37,7 +37,7 @@ class Player(pygame.sprite.Sprite):
         self.surf = restingSprite
         self.rect = self.surf.get_rect(center= (10,420))
 
-        self.pos = vec((180,1070))
+        self.pos = vec(level1.position)
         self.vel = vec(0,0)
         self.flipped = False
         self.moveToggle = False
@@ -55,7 +55,6 @@ class Player(pygame.sprite.Sprite):
         on_tree = pygame.sprite.spritecollide(PLAYER, TREES, False)
         on_sign = pygame.sprite.spritecollide(PLAYER, signs, False)
         on_goal = pygame.sprite.spritecollide(PLAYER, [GOAL], False)
-        pressed_keys = pygame.key.get_pressed() # for testing only
         DIR = 'None'
         if (volume > 500000):
             if (note == 'C' or note == 'B'):
@@ -66,23 +65,18 @@ class Player(pygame.sprite.Sprite):
                 DIR = 'UP'
             elif (note == 'E' or note == 'C#'):
                 DIR = 'DOWN'
-        # if pressed_keys[K_LEFT] and on_floor:
         if DIR == 'LEFT' and on_floor:
-            if on_floor:
-                self.vel = (-8,0)
-                self.animateMove()
-                self.flipped = True
-        # if pressed_keys[K_RIGHT] and on_floor:
+            self.vel = (-8,0)
+            self.animateMove()
+            self.flipped = True
         elif DIR == 'RIGHT' and on_floor:
-                self.vel = (8,0)
-                self.animateMove()
-                self.flipped = False
-        # if pressed_keys[K_UP] and on_floor:
+            self.vel = (8,0)
+            self.animateMove()
+            self.flipped = False
         elif DIR == 'UP' and (on_tree or on_floor):
-                self.vel = (0,-8)
-                self.surf = restingSpriteF if self.flipped else restingSprite
-                self.flipped = not self.flipped
-        # if pressed_keys[K_DOWN] and on_floor:
+            self.vel = (0,-8)
+            self.surf = restingSpriteF if self.flipped else restingSprite
+            self.flipped = not self.flipped
         elif DIR == 'DOWN' and on_tree:
             if on_tree:
                 self.vel = (0,8)
@@ -107,7 +101,15 @@ class Player(pygame.sprite.Sprite):
            
         self.pos += self.vel
         self.rect.midbottom = self.pos
-
+        if (level == 2):
+            if pygame.sprite.spritecollide(PLAYER, [level2.KNIGHT], False):
+                FADER.FADEOUT = True
+                FADER.LOSE = True
+                return
+        elif (level == 3):
+            if pygame.sprite.spritecollide(PLAYER, list(map(lambda x: x.child, level3.SPAWNERS)), False):
+                FADER.FADEOUT = True
+                FADER.LOSE = True
         if (self.pos.y > 1200):
             FADER.FADEOUT = True
             FADER.LOSE = True
@@ -133,21 +135,24 @@ GOAL = level1.GOAL
 
 all_sprites.add(LEVEL_OVERLAY)
 
-level = 1
+level = 0 # will increment to one, set this to zero
+current_level = level1
+
 def start_next_level():
-    global level
+    global level, current_level
     level += 1
-    current_level = level1
-    if level == 2:
+    if level == 1:
+        current_level = level1
+    elif level == 2:
         current_level = level2
     elif level == 3:
         current_level = level3
-    elif level == 4:
-        current_level = level4
+    # elif level == 4:
+    #     current_level = level4
     else:
         level = 1
+        current_level = level1
         TIME_OVERLAY.reset()
-        print("Reminder to display the best time")
     LEVEL_OVERLAY.update(level)
     
     global all_sprites
@@ -163,6 +168,10 @@ def start_next_level():
     signs = current_level.signs
     GOAL = current_level.GOAL
 
+    PLAYER.pos = vec(current_level.position)
+
+start_next_level()
+
 while True:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -173,6 +182,11 @@ while True:
     audio_data = ear.get_audio_features()
 
     PLAYER.move(audio_data['note'], audio_data['vol'])
+    if level == 2:
+        level2.KNIGHT.update(PLAYER.pos.x, FLOORS)
+    elif level == 3:
+        for entity in level3.SPAWNERS:
+            entity.update(displaysurface)
     for entity in all_sprites:
         displaysurface.blit(entity.surf, entity.rect)
 
@@ -188,9 +202,10 @@ while True:
         FADER.display(displaysurface)
         FADER.update()
         if (FADER.NEXT and FADER.LOSE):
-            PLAYER.pos = vec((180,1070))
+            PLAYER.pos = vec(current_level.position)
+            if (level == 2):
+                level2.reset_knight()
         if (FADER.NEXT and FADER.WIN):
-            PLAYER.pos = vec((180,1070))
             start_next_level()
 
     pygame.display.update()
